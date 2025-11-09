@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'dart:async';
 
 Future main() async {
   var serverIp = InternetAddress.loopbackIPv4.host;
@@ -32,6 +33,8 @@ Future main() async {
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
 
+  sleep(Duration(seconds: 3));
+
   print('#2 유저정보 조회: GET userinfo');
   serverPath = '/user/lees8351';
   httpRequest = await httpClient.get(serverIp, serverPort, serverPath);
@@ -39,6 +42,8 @@ Future main() async {
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
+
+  sleep(Duration(seconds: 3));
 
   print('#3 유저정보 수정: PUT userinfo');
   jsonContent = {
@@ -57,6 +62,8 @@ Future main() async {
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
 
+  sleep(Duration(seconds: 3));
+
   print('#4 유저정보 삭제: DELETE userinfo');
   serverPath = '/user/lees8351';
   httpRequest = await httpClient.delete(serverIp, serverPort, serverPath);
@@ -64,6 +71,8 @@ Future main() async {
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
+
+  sleep(Duration(seconds: 3));
 
   print('<< pathinfo CRUD >>');
   print('#5 경로 저장: POST pathinfo');
@@ -84,6 +93,8 @@ Future main() async {
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
 
+  sleep(Duration(seconds: 3));
+
   print('#6 경로 불러오기: GET pathinfo');
   serverPath = '/path/lees8351';
   httpRequest = await httpClient.get(serverIp, serverPort, serverPath);
@@ -91,6 +102,8 @@ Future main() async {
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
+
+  sleep(Duration(seconds: 3));
 
   print('#7 경로 수정: PUT pathinfo');
   var prev = (jsonDecode(httpResponseContent) as List)[0] as Map;
@@ -115,6 +128,8 @@ Future main() async {
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
 
+  sleep(Duration(seconds: 3));
+
   print('#8 경로 삭제: DELETE pathinfo');
   serverPath = '/path/lees8351/$pathId';
   httpRequest = await httpClient.delete(serverIp, serverPort, serverPath);
@@ -122,6 +137,8 @@ Future main() async {
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
+
+  sleep(Duration(seconds: 3));
 
   print('<< board CRUD >>');
   print('#9 게시판 글작성: POST board');
@@ -149,6 +166,8 @@ Future main() async {
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
 
+  sleep(Duration(seconds: 30));
+
   print('#10 게시판 글 불러오기: GET board');
   serverPath = '/board/lees8351';
   httpRequest = await httpClient.get(serverIp, serverPort, serverPath);
@@ -156,6 +175,8 @@ Future main() async {
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
+
+  sleep(Duration(seconds: 3));
 
   print('#11 게시판 글 수정 : PUT board');
   prev = (jsonDecode(httpResponseContent) as List)[0] as Map;
@@ -182,6 +203,8 @@ Future main() async {
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
   printHttpContentInfo(httpResponse, httpResponseContent);
   print('\n');
+
+  sleep(Duration(seconds: 3));
 
   print('#12 게시판 글 삭제: DELETE board');
   serverPath = '/board/lees8351/$postId';
