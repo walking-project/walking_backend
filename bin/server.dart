@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 Future main() async { // Future는 promise에 대응, 비동기 처리를 위한 것
   var db = await Db.create("mongodb+srv://lees8351:suryeon1121@cluster0.wqukfws.mongodb.net/user?appName=Cluster0");
@@ -16,13 +17,25 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
       if(field == 'posting') {
         data['postId'] = ObjectId();
         data['userid'] = id;
-        data['time'] = DateTime.parse(data['time']); // DateTime 직접 디코딩 필요
+        data['time'] = DateTime.parse(data['time']); // DateTime 직접 디코딩 필요, 디코딩 메서드 : parse()
       }
       else if(field == 'path') {
         data['pathId'] = ObjectId();
         data['userid'] = id;
       }
       else {
+        const _secretKey = 'secret';
+        final jwt = JWT(
+          {
+            'userid': data['userid'],
+            'username': data['username'],
+            'password': data['password'],
+          },
+          issuer: 'https://github.com/jonasroussel/dart_jsonwebtoken',
+        );
+        final token = jwt.sign(SecretKey(_secretKey));
+        print('token: $token');
+        data['accessToken'] = token;
         data['_id'] = ObjectId();
       }
       await collection.insertOne(data);
@@ -38,7 +51,7 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
     print('Data found: $result');
     if(field == 'posting') {
       for(var r in result) {
-        r['time'] = r['time'].toIso8601String();
+        r['time'] = r['time'].toIso8601String(); // 직접 인코딩
       }
     };
     print('\n');
@@ -99,23 +112,37 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
 
   void requestHandler(var collection, var method, HttpRequest request, var field) async {
       final uri = request.uri.pathSegments;
+      // print(method);
+      // CORS 헤더 세팅(gpt의 도움을 받았습니다)
+      // dio 라이브러리에서는 http 요청을 보내기 전 method가 OPTIONS 요청을 먼저 보내기 때문에
+      // 이를 처리해주어야 함
+      request.response.headers.add('Access-Control-Allow-Origin', '*');
+      request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      request.response.headers.add('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept');
+      if(request.method == 'OPTIONS') {
+        request.response.statusCode = HttpStatus.noContent;
+        await request.response.close();
+        return;
+      }
+      // CORS 헤더 세팅
       switch(method) {
         case 'POST':
           var content = await utf8.decoder.bind(request).join();
           var data = jsonDecode(content) as Map;
           if(uri.length >= 2) {
+            if(uri == '/user/login') {
+              // jwt토큰 검증
+            }
             var id = uri[1];
             await createDB(collection, data, field, id);
           }
           else {
             await createDB(collection, data, field);
           }
-          content = '$data is accepted';
           request.response
-            ..headers.contentType = ContentType('text', 'plain', charset:'utf-8')
-            ..headers.contentLength = utf8.encode(content).length
+            ..headers.contentType = ContentType('application', 'json', charset:'utf-8')
             ..statusCode = HttpStatus.ok
-            ..write(content);
+            ..write(jsonEncode(data));
           await request.response.close();
           break;
         case 'GET':
@@ -159,6 +186,7 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
 
   await for(HttpRequest request in server) {
     try {
+      
       var method = request.method;
 
       if(request.uri.path == '/') {

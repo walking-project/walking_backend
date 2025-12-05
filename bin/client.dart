@@ -107,6 +107,7 @@ Future main() async {
 
   print('#7 경로 수정: PUT pathinfo');
   var prev = (jsonDecode(httpResponseContent) as List)[0] as Map;
+  // 디코딩한 json을 List, Map으로 타입변환 메서드(as)
   var pathId = prev['pathId'];
   var userid = prev['userid'];
   jsonContent = {
@@ -122,6 +123,7 @@ Future main() async {
   serverPath = '/path/lees8351/$pathId';
   httpRequest = await httpClient.put(serverIp, serverPort, serverPath)
     ..headers.contentType = ContentType.json
+    // 한글 인코딩하는 과정에서 content.length 오류
     ..write(content);
   httpResponse = await httpRequest.close();
   httpResponseContent = await utf8.decoder.bind(httpResponse).join();
@@ -149,7 +151,7 @@ Future main() async {
 헤안다 땉끼닚젼의 그오고 어오래근가로 애가인조가 쫀히닣갬다. 무시에 너다익이 자이환친즈 주옴김앤는 제쿠다. 예센이 바기겐은 제얼상아 단사콘 깅뎐을, 갠녈검 오랐홋쳬, 재묵덴다 마와다. 벼어으싱 타니숸커라 나비빌의 낙기구의 몬스온을 모드에서 틸제니. 비매는 먈련눈으로 요사둠헤리는 빈소뗨 애데어하를 했아고바게, 나드자시의 하견가를 싱티를 긱지리의마를 효테히교할의. 만오이딜이다 인머전잣은 가추허로, 행운히이라 우눈이 운덩이 르엠븨 바귀게, 긴랜검개가. 룰디가 믑슥을 림쾨가 마님루다, 가읒져로 러좀 데그엔의. 거머랄잦으면 햐사가 놀티미살일 기떼 날아뷰액을 며암유다 배텨 믕선다. 
 
 나사뿐 비기안오겄의 본뎌와 갆다던이니 앱으가겍을 하기체표다 싱노그냐. 롬인이 밴옸옹다앤 즈렴뤽사 틀망리쵸는 딜앟갑는다면 더아잉솜 고댄서새는. 제쌘이 됸며쌋는다 주헨, 새스터도 머보하버케팡과, 롬아이둣개 바딩뎔으로 거긘 안리옴으루는 죨팀안온 아윌졔대. 함소와 다바댤시라다 딘라김홰찬다 통밍여치라 나잴새머, 가매싰으나 갈겨가으가 엨어므시와, 겄수탄이. 증판습니다 으검어서 인가믕앵 신썅졸 옌공언은께 안노와 쿈리더교지요.''',
-    'time': DateTime.now().toIso8601String(), // DateTime은 직접 인코딩이 안되어 수동으로 해줘야함 : toIso8601String()
+    'time': DateTime.now().toIso8601String(), // DateTime은 직접 인코딩이 안되어 수동으로 해줘야함, 인코딩 메서드 : toIso8601String()
     'likes': 20,
     'comment': [{
       'commentedUserId': 'suryeon1234',
