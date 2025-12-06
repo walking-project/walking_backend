@@ -119,6 +119,7 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
       request.response.headers.add('Access-Control-Allow-Origin', '*');
       request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       request.response.headers.add('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept');
+      request.response.headers.add('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization');
       if(request.method == 'OPTIONS') {
         request.response.statusCode = HttpStatus.noContent;
         await request.response.close();
@@ -130,11 +131,52 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
           var content = await utf8.decoder.bind(request).join();
           var data = jsonDecode(content) as Map;
           if(uri.length >= 2) {
-            if(uri == '/user/login') {
+            if(uri[1] == 'login') {
               // jwt토큰 검증
+              var header = request.headers.value(HttpHeaders.authorizationHeader);
+              print('request header: $header');
+              if(header == null || !header.startsWith('Bearer ')) {
+                request.response
+                  ..headers.contentType = ContentType('application', 'json', charset:'utf-8')
+                  ..statusCode = HttpStatus.unauthorized
+                  ..write(jsonEncode({'Error: token is invalid'}));
+                await request.response.close();
+                break;
+              }
+              else {
+                var accessToken = header.substring(7);
+                try {
+                  final jwt = JWT.verify(accessToken, SecretKey('secret'));
+                  print('payload: ${jwt.payload}');
+                  request.response
+                    ..headers.contentType = ContentType('application', 'json', charset:'utf-8')
+                    ..statusCode = HttpStatus.ok
+                    ..write(jsonEncode({'message': 'token verified', 'payload': jwt.payload}));
+                  await request.response.close();
+                  break;
+                } on JWTExpiredException {
+                  print('JWT expired');
+                  request.response
+                    ..headers.contentType = ContentType('application', 'json', charset:'utf-8')
+                    ..statusCode = HttpStatus.unauthorized
+                    ..write(jsonEncode({'Error: token is expired'}));
+                  await request.response.close();
+                  break;
+                } on JWTException catch (ex) {
+                  print(ex.message);
+                  request.response
+                    ..headers.contentType = ContentType('application', 'json', charset:'utf-8')
+                    ..statusCode = HttpStatus.unauthorized
+                    ..write(jsonEncode({'Error: token is invalid'}));
+                  await request.response.close();
+                }
+              }
+              
             }
-            var id = uri[1];
-            await createDB(collection, data, field, id);
+            else {
+              var id = uri[1];
+              await createDB(collection, data, field, id);
+            }
           }
           else {
             await createDB(collection, data, field);
