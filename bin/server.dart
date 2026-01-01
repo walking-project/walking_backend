@@ -17,7 +17,7 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
       if(field == 'posting') {
         data['postId'] = ObjectId();
         data['userid'] = id;
-        data['time'] = DateTime.parse(data['time']); // DateTime 직접 디코딩 필요, 디코딩 메서드 : parse()
+        data['time'] = DateTime.parse(data['time']);  // DateTime 직접 디코딩 필요, 디코딩 메서드 : parse()
       }
       else if(field == 'path') {
         data['pathId'] = ObjectId();
@@ -43,16 +43,27 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
       print('All items in pathinfo: ${await db.collection('pathinfo').find().toList()}');
       print('All items in board: ${await db.collection('board').find().toList()}');
       print('Data inserted: $data');
+      if(field == 'posting') data['time'] = (data['time'] as DateTime).toIso8601String();
       print('\n');
   }
 
   Future<List<Object>> readDB(var collection, var id, [var field]) async {
-    var result = await collection.find(where.eq('userid', id)).toList();
-    print('Data found: $result');
+    var result;
     if(field == 'posting') {
+      if(id == null) {
+        result = await collection.find().toList();
+      }
+      else {
+        print('postId param: $id (${id.runtimeType})');
+        result = await collection.find(where.eq('postId', ObjectId.fromHexString(id))).toList();
+      }
       for(var r in result) {
         r['time'] = r['time'].toIso8601String(); // 직접 인코딩
       }
+    }
+    else {
+      result = await collection.find(where.eq('userid', id)).toList();
+      print('Data found: $result');
     };
     print('\n');
     return result;
@@ -188,12 +199,14 @@ Future main() async { // Future는 promise에 대응, 비동기 처리를 위한
           await request.response.close();
           break;
         case 'GET':
-          var id = uri[1];
           var data;
-          if(field == 'posting') data = jsonEncode(await readDB(collection, id, field));
-          else data = jsonEncode(await readDB(collection, id));
+          if(field == 'posting' && uri.length == 1) data = jsonEncode(await readDB(collection, null, field));
+          else {
+            var id = uri[1];
+            data = jsonEncode(await readDB(collection, id, field));
+          };
           request.response
-            ..headers.contentType = ContentType('text', 'plain', charset:'utf-8')
+            ..headers.contentType = ContentType('application', 'json', charset:'utf-8')
             ..headers.contentLength = utf8.encode(data).length
             ..statusCode = HttpStatus.ok
             ..write(data);
